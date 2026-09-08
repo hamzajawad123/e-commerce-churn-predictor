@@ -1,0 +1,36 @@
+# Core data / ML
+numpy>=1.26,<3
+pandas>=2.1,<3
+pyarrow>=14.0
+scikit-learn>=1.3,<2
+catboost>=1.2
+imbalanced-learn>=0.12
+shap>=0.44
+
+# Feature store
+feast>=0.40
+
+# Experiment tracking / registry (DagsHub-hosted MLflow)
+mlflow>=2.10
+dagshub>=0.3
+
+# Serving
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.5
+streamlit>=1.31
+python-dotenv>=1.0
+httpx>=0.27
+requests>=2.31
+
+# EDA / notebooks
+matplotlib>=3.8
+seaborn>=0.13
+
+# Data versioning
+dvc>=3.50
+dvc-http>=2.32
+
+# Dev / CI
+pytest>=8.0
+flake8>=7.0

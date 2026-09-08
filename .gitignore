@@ -1,0 +1,51 @@
+# Secrets & local env
+.env
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Data (tracked via DVC pointers only)
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/*.dvc
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/*.dvc
+
+# Feast local stores / registry
+feature_repo/data/
+*.db
+
+# MLflow local runs (remote is DagsHub)
+mlruns/
+mlartifacts/
+catboost_info/
+
+# Logs
+logs/*.log
+!logs/.gitkeep
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# DVC cache / temp (config stays tracked)
+.dvc/tmp/
+.dvc/cache/
