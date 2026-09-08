@@ -4,6 +4,9 @@
 venv/
 env/
 
+# Local planning (not for GitHub)
+plan.md
+
 # Python
 __pycache__/
 *.py[cod]
