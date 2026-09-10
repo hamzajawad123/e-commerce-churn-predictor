@@ -1,0 +1,15 @@
+.git
+.github
+.dvc
+venv/
+.venv/
+__pycache__/
+tests/
+notebooks/
+scripts/
+data/raw
+data/processed
+logs/*.log
+.env
+.env.example
+README.md

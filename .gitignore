@@ -4,7 +4,7 @@
 venv/
 env/
 
-# Local planning (not for GitHub)
+# Local planning
 plan.md
 
 # Python
@@ -29,14 +29,21 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 !data/processed/*.dvc
+data/synthetic_generator.pkl
+data/synthetic_generator_metadata.json
+data/processed/features_with_synthetic.parquet
+data/processed/features_real.parquet
 
 # Feast local stores / registry
 feature_repo/data/
 *.db
+predictions_log.db
+test_predictions_log.db
 
 # MLflow local runs (remote is DagsHub)
 mlruns/
 mlartifacts/
+mlflow.db
 catboost_info/
 
 # Logs

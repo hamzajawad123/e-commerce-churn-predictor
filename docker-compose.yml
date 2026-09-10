@@ -1,0 +1,25 @@
+services:
+  api:
+    build: .
+    image: ecommerce-churn-ltv:local
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  dashboard:
+    build: .
+    image: ecommerce-churn-ltv:local
+    command: ["streamlit", "run", "app/Home.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      # Use compose service name instead of localhost
+      - API_BASE_URL=http://api:8000
+    depends_on:
+      - api
+    restart: unless-stopped
