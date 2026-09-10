@@ -87,7 +87,8 @@ with c1:
           <div class="label">Churn probability</div>
           <div class="value">{proba:.1%}</div>
           <span class="badge {risk_badge_class(risk)}">Risk · {risk}</span>
-          <div class="meter-track"><div class="meter-fill {risk_meter_class(risk)}" style="width:{pct:.1f}%"></div></div>
+          <div class="meter-track"><div class="meter-fill {risk_meter_class(risk)}"
+               style="width:{pct:.1f}%"></div></div>
         </div>
         """,
         unsafe_allow_html=True,

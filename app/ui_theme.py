@@ -6,10 +6,15 @@ import streamlit as st
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
-THEME_CSS = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+_FONT_CSS = (
+    "https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700"
+    "&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+)
 
+THEME_CSS = (
+    "<style>\n"
+    f"@import url('{_FONT_CSS}');\n"
+    """
 html, body, [class*="css"] {
   font-family: "Source Sans 3", sans-serif;
 }
@@ -280,6 +285,7 @@ html, body, [class*="css"] {
 }
 </style>
 """
+)
 
 
 def inject_theme():
