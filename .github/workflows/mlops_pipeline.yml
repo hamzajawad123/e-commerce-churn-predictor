@@ -11,8 +11,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  # ============================================================
+  # CI: Lint, test, DVC pull, Feast validation, Docker build
+  # ============================================================
   ci:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # ------------------------------------------------------------
+      # DVC
+      # ------------------------------------------------------------
       - name: Configure DVC remote credentials
         run: |
           dvc remote modify origin --local auth basic
@@ -33,11 +40,26 @@ jobs:
           dvc remote modify origin --local password "${{ secrets.DAGSHUB_TOKEN }}"
 
       - name: Pull data (DVC)
-        run: dvc pull
+        run: |
+          dvc pull
+          dvc checkout
 
+      - name: Verify DVC data
+        run: |
+          echo "Checking processed data..."
+          ls -lah data/processed/
+          test -f data/processed/features.parquet
+          echo "features.parquet found successfully."
+
+      # ------------------------------------------------------------
+      # Code quality
+      # ------------------------------------------------------------
       - name: Lint (flake8)
         run: flake8 app/ src/ tests/ --max-line-length=120
 
+      # ------------------------------------------------------------
+      # Feast + tests
+      # ------------------------------------------------------------
       - name: Unit tests (pytest)
         env:
           FEAST_REPO_PATH: ${{ github.workspace }}/feature_repo
@@ -45,17 +67,47 @@ jobs:
           bash scripts/feast_setup.sh
           pytest tests/ -v
 
+      # ------------------------------------------------------------
+      # Docker validation
+      # ------------------------------------------------------------
       - name: Docker build (validate image builds, PRs too)
         run: docker build -t ecommerce-churn-ltv:ci .
 
+
+  # ============================================================
+  # SYNC: GitHub repository → DagsHub Files
+  # Runs whenever main is updated
+  # ============================================================
+  sync-dagshub:
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync GitHub repository to DagsHub
+        run: |
+          git remote add dagshub "https://${{ secrets.DAGSHUB_REPO_OWNER }}:${{ secrets.DAGSHUB_TOKEN }}@dagshub.com/${{ secrets.DAGSHUB_REPO_OWNER }}/${{ secrets.DAGSHUB_REPO_NAME }}.git"
+          git push dagshub main
+
+
+  # ============================================================
+  # PUBLISH: Retraining, MLflow, Feast, and Docker Hub
+  # ============================================================
   publish:
     needs: ci
     if: |
       (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch'
+
     runs-on: ubuntu-latest
     timeout-minutes: 180
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -69,6 +121,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # ------------------------------------------------------------
+      # DVC
+      # ------------------------------------------------------------
       - name: Configure DVC remote credentials
         run: |
           dvc remote modify origin --local auth basic
@@ -76,8 +131,20 @@ jobs:
           dvc remote modify origin --local password "${{ secrets.DAGSHUB_TOKEN }}"
 
       - name: Pull data (DVC)
-        run: dvc pull
+        run: |
+          dvc pull
+          dvc checkout
 
+      - name: Verify DVC data
+        run: |
+          echo "Checking processed data..."
+          ls -lah data/processed/
+          test -f data/processed/features.parquet
+          echo "features.parquet found successfully."
+
+      # ------------------------------------------------------------
+      # Retraining + MLflow
+      # ------------------------------------------------------------
       - name: Synthetic batch + retrain all models + MLflow promote
         env:
           MLFLOW_TRACKING_URI: https://dagshub.com/${{ secrets.DAGSHUB_REPO_OWNER }}/${{ secrets.DAGSHUB_REPO_NAME }}.mlflow
@@ -88,11 +155,28 @@ jobs:
           MODEL_NAME_CHURN: churn_model
           MODEL_NAME_LTV: ltv_model
           MODEL_ALIAS: champion
-        run: python scripts/run_retrain_cycle.py --num-rows 5000
+        run: |
+          python scripts/run_retrain_cycle.py --num-rows 5000
 
-      - name: Apply + materialize Feast (updated features.parquet)
-        run: bash scripts/feast_setup.sh
+      # ------------------------------------------------------------
+      # Feast
+      # ------------------------------------------------------------
+      - name: Verify Feast data after retraining
+        run: |
+          echo "Checking processed data after retraining..."
+          ls -lah data/processed/
+          test -f data/processed/features.parquet
+          echo "features.parquet is available for Feast."
 
+      - name: Apply + materialize Feast
+        env:
+          FEAST_REPO_PATH: ${{ github.workspace }}/feature_repo
+        run: |
+          bash scripts/feast_setup.sh
+
+      # ------------------------------------------------------------
+      # Docker Hub
+      # ------------------------------------------------------------
       - name: Docker meta (tags)
         id: meta
         uses: docker/metadata-action@v5
