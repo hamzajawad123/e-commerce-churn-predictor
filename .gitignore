@@ -23,12 +23,8 @@ htmlcov/
 .ipynb_checkpoints/
 
 # Data (tracked via DVC pointers only)
-data/raw/*
-!data/raw/.gitkeep
-!data/raw/*.dvc
-data/processed/*
-!data/processed/.gitkeep
-!data/processed/*.dvc
+data/raw/ecommerce_customer_churn_dataset.csv
+data/processed/features.parquet
 data/synthetic_generator.pkl
 data/synthetic_generator_metadata.json
 data/processed/features_with_synthetic.parquet
